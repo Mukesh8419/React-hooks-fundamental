@@ -1,0 +1,94 @@
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { useFetch } from '../../9-custom-hooks/final/2-useFetch'
+
+// ATTENTION!!!!!!!!!!
+// I SWITCHED TO PERMANENT DOMAIN
+const url = 'https://course-api.com/javascript-store-products'
+
+// every time props or state changes, component re-renders
+const calculateMostExpensive=(data)=>{
+  return(
+     data.reduce((total,item)=>{
+    const price=item.fields.price;
+    if(price>=total){
+      total=price;
+    }
+    return total;
+    //initial value 0
+  },0)/100
+)
+}
+const Index = () => {
+  const { products } = useFetch(url)
+  const [count, setCount] = useState(0)
+const [cart,setCart]=useState(0)
+
+const addToCart =useCallback(()=>{
+  setCart(cart+1);
+},[cart])
+
+// const addToCart =()=>{
+//   setCart(cart+1);
+// }
+
+//mostExpensive variable & useMemo()
+const mostExpensive=useMemo(()=>calculateMostExpensive(products),[
+  products,
+])
+
+  return (
+    <>
+      <h1>Count : {count}</h1>
+      <button className='btn' onClick={() => setCount(count + 1)}>
+        click me
+      </button>
+      <h1 style={{marginTop:"3rem"}}>
+      cart:{cart}
+      </h1>
+      {/**pass in products and fn. calculateMostExpensive() */}
+      {/* <h1>Most Expensive:${calculateMostExpensive(products)}</h1> */}
+            <h1>Most Expensive:${mostExpensive}</h1>
+           {/*addToCart here*/}
+      <BigList products={products} addToCart={addToCart}/>
+    </>
+  )
+}
+//addToCart destructure
+const BigList =React.memo(({ products,addToCart }) => {
+  useEffect(()=>{
+    console.log('big list called');
+  })
+  
+  return (
+    <section className='products'>
+      {products.map((product) => {
+        return <SingleProduct key={product.id} {...product}
+        //addToCart to here
+   addToCart={addToCart} >
+        </SingleProduct>
+      })}
+    </section>
+  )
+})
+//data api se fields
+//destructuring addToCart here..
+const SingleProduct = ({ fields,addToCart}) => {
+    useEffect(()=>{
+    console.count('single item called');
+  })
+
+  let { name, price } = fields
+  price = price / 100 //ex. 999/100=$9.99.....etc.
+  const image = fields.image[0].url
+
+  return (
+    <article className='product'>
+      <img src={image} alt={name} />
+      <h4>{name}</h4>
+      <p>${price}</p>
+      {/**addToCart */}
+      <button onClick={addToCart}>Add To Card</button>
+    </article>
+  )
+}
+export default Index
